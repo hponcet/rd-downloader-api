@@ -1,13 +1,7 @@
 const escape = encodeURIComponent;
 
 type RequestData = {
-  [key: string]:
-    | string
-    | number
-    | boolean
-    | undefined
-    | RequestData
-    | TorrentFile[];
+  [key: string]: string | number | boolean | undefined | RequestData | TorrentFile[];
 };
 
 type RequestOptions = {
@@ -113,11 +107,7 @@ export class qBittorrentClient {
     this.search = new qBittorrentSearchClient(this);
   }
 
-  async request(
-    method: string,
-    data: RequestData = {},
-    options: RequestOptions = {},
-  ) {
+  async request(method: string, data: RequestData = {}, options: RequestOptions = {}) {
     // const url = this.#url + '/api/v2/' + method.replace(/^\//, '');
 
     console.log('[method]', method);
@@ -373,11 +363,7 @@ class qBittorrentTorrentsClient extends qBittorrentSubClient {
     });
   }
 
-  filePrio(
-    hash: string,
-    id: string[] | string | number[] | number,
-    priority: number,
-  ) {
+  filePrio(hash: string, id: string[] | string | number[] | number, priority: number) {
     return this.client.request('/torrents/filePrio', {
       hash,
       id: join(id),
@@ -398,11 +384,7 @@ class qBittorrentTorrentsClient extends qBittorrentSubClient {
     });
   }
 
-  setShareLimits(
-    hashes: string[] | string,
-    ratioLimit = -1,
-    seedingTimeLimit = -1,
-  ) {
+  setShareLimits(hashes: string[] | string, ratioLimit = -1, seedingTimeLimit = -1) {
     return this.client.request('/torrents/setShareLimits', {
       hashes: join(hashes),
       ratioLimit,
@@ -554,10 +536,8 @@ class qBittorrentTorrentsClient extends qBittorrentSubClient {
         data.urls = join(torrent.urls, '\n');
       }
       if (torrent?.torrents) {
-        const torrents = Array.isArray(torrent.torrents)
-          ? torrent.torrents
-          : [torrent.torrents];
-        data.torrents = torrents.map((torrent) => {
+        const torrents = Array.isArray(torrent.torrents) ? torrent.torrents : [torrent.torrents];
+        data.torrents = torrents.map(torrent => {
           torrent.content_type = 'application/x-bittorrent';
           return torrent;
         });
@@ -597,11 +577,7 @@ class qBittorrentTorrentsClient extends qBittorrentSubClient {
 }
 
 class qBittorrentSearchClient extends qBittorrentSubClient {
-  async start(
-    pattern: string,
-    plugins: string[] | string = 'all',
-    category: string[] | string = 'all',
-  ): Promise<number> {
+  async start(pattern: string, plugins: string[] | string = 'all', category: string[] | string = 'all'): Promise<number> {
     const { id } = await this.client.request('/search/start', {
       pattern,
       plugins: join(plugins),
@@ -614,9 +590,7 @@ class qBittorrentSearchClient extends qBittorrentSubClient {
     return this.client.request('/search/stop', { id });
   }
 
-  async status(
-    id?: number,
-  ): Promise<TorrentSearchStatus[] | TorrentSearchStatus> {
+  async status(id?: number): Promise<TorrentSearchStatus[] | TorrentSearchStatus> {
     const res = await this.client.request('/search/status', {
       id: typeof id === 'number' ? id : undefined,
     });
@@ -626,13 +600,8 @@ class qBittorrentSearchClient extends qBittorrentSubClient {
     return <TorrentSearchStatus[]>res;
   }
 
-  async results(
-    id: number,
-    limit = 0,
-    offset = 0,
-  ): Promise<TorrentSearchResult[]> {
-    return (await this.client.request('/search/results', { id, limit, offset }))
-      .results;
+  async results(id: number, limit = 0, offset = 0): Promise<TorrentSearchResult[]> {
+    return (await this.client.request('/search/results', { id, limit, offset })).results;
   }
 
   delete(id: number) {
